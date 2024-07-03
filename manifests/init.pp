@@ -10,6 +10,10 @@
 #       The site of the Datadog intake to send Agent data to. Defaults to 'datadoghq.com',
 #       can be set to 'datadoghq.eu' to send data to the EU site or 'us3.datadoghq.com'.
 #       This option is only available with agent version >= 6.6.0.
+#
+#   $datadog_env:
+#       Determine membership of host group (Prerelease, Mirror, Productive, etc.)
+#
 #   $host:
 #       Force the hostname to whatever you want. (default: auto-detected)
 #   $api_key:
@@ -260,6 +264,7 @@
 class datadog_agent(
   String $dd_url = '',
   String $datadog_site = $datadog_agent::params::datadog_site,
+  String $datadog_env = 'integration',
   String $host = '',
   String $api_key = 'your_API_key',
   Enum['datadog-agent', 'Datadog Agent', 'datadog-iot-agent'] $agent_flavor = $datadog_agent::params::package_name,
@@ -777,6 +782,7 @@ class datadog_agent(
       'api_key' => $api_key,
       'dd_url' => $dd_url,
       'site' => $datadog_site,
+      'env' => $datadog_env,
       'cmd_port' => $cmd_port,
       'hostname_fqdn' => $hostname_fqdn,
       'collect_ec2_tags' => $collect_ec2_tags,
