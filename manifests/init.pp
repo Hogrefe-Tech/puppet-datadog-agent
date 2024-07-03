@@ -264,7 +264,7 @@
 class datadog_agent(
   String $dd_url = '',
   String $datadog_site = $datadog_agent::params::datadog_site,
-  String $datadog_env = 'integration',
+  String $datadog_env = '',
   String $host = '',
   String $api_key = 'your_API_key',
   Enum['datadog-agent', 'Datadog Agent', 'datadog-iot-agent'] $agent_flavor = $datadog_agent::params::package_name,
