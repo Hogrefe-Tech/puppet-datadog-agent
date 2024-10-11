@@ -22,15 +22,31 @@ instances:
   <%- end -%>
 <% end -%>
 
+
 logs:
+<% if @proxy_is_eval -%>
     - type: file
       path: /var/log/apache2/eval.hogrefe-ws.com_access.log
       source: apache
-      service: <%= @hostname %>-revproxy
+      service: <%= @hostname %>-eval.hogrefe-ws.com
       sourcecategory: http_web_access
 
     - type: file
       path: /var/log/apache2/eval.hogrefe-ws.com_error.log
       source: apache
-      service: <%= @hostname %>-revproxy
+      service: <%= @hostname %>-eval.hogrefe-ws.com
       sourcecategory: http_web_error
+<% end -%>
+<% if ! @proxy_is_eval -%>
+    - type: file
+      path: /var/log/apache2/www.hogrefe-online.com_access.log
+      source: apache
+      service: <%= @hostname %>-hogrefe-online.com
+      sourcecategory: http_web_access
+
+    - type: file
+      path: /var/log/apache2/www.hogrefe-online.com_error.log
+      source: apache
+      service: <%= @hostname %>-hogrefe-online.com
+      sourcecategory: http_web_error
+<% end -%>
