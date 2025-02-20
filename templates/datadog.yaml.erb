@@ -4,3 +4,12 @@
 require 'yaml'
 %>
 <%= @agent_config.to_yaml %>
+<% if @otlp_enabled -%>
+otlp_config:
+  logs:
+    enabled: false
+  receiver:
+    protocols:
+      http:
+        endpoint: 127.0.0.1:4318
+<% end -%>
