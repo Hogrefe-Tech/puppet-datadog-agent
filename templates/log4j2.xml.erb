@@ -10,7 +10,7 @@
         <SizeBasedTriggeringPolicy size="256 MB"/>
       </Policies>
       <DefaultRolloverStrategy>
-        <Delete basePath="/var/log/tomcat">
+        <Delete basePath="/var/log/tomcat" followLinks="true">
           <IfFileName glob="<%= @application_name %>-*.log.gz"/>
           <IfAccumulatedFileSize exceeds="256 MB"/>
         </Delete>
