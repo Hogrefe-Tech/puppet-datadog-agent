@@ -24,6 +24,13 @@ instances:
 
 
 logs:
+
+    - type: file
+      path: /var/log/apache2/error.log
+      source: apache
+      service: <%= @hostname %>
+      sourcecategory: http_web_error
+
 <% if @proxy_is_eval -%>
     - type: file
       path: /var/log/apache2/eval.hogrefe-ws.com_access.log
