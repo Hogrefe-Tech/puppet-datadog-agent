@@ -478,15 +478,16 @@ class datadog_agent (
     'process_config' => {
       'enabled'                => $process_enabled,
       'scrub_args'             => $scrub_args,
+      'strip_proc_arguments'   => true,
       'custom_sensitive_words' => $custom_sensitive_words,
-      'process_collection' => {
+      'process_collection'     => {
         'enabled' => $process_enabled
       },
-      'container_collection' => {
+      'container_collection'   => {
         'enabled' => $container_collect_all
       },
     },
-    'docker_config' => {
+    'docker_config'  => {
       'enabled' => $container_collect_all
     },
     'logs_enabled'   => $logs_enabled,
