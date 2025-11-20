@@ -487,9 +487,6 @@ class datadog_agent (
         'enabled' => $container_collect_all
       },
     },
-    'docker_config'  => {
-      'enabled' => $container_collect_all
-    },
     'logs_enabled'   => $logs_enabled,
   }
 
