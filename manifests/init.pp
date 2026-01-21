@@ -469,12 +469,6 @@ class datadog_agent (
     notify { 'Setting proxy_password is only used with Agent 5. Please use agent_extra_options to set your proxy': }
   }
 
-  # lint:ignore:quoted_booleans
-  $process_enabled_str = $process_enabled ? {
-    true    => 'true',
-    default => 'disabled'
-  }
-  # lint:endignore
   $base_extra_config = {
     'apm_config'     => {
       'enabled'               => $apm_enabled,
@@ -482,12 +476,20 @@ class datadog_agent (
       'apm_non_local_traffic' => $apm_non_local_traffic
     },
     'process_config' => {
-      'enabled'                => $process_enabled_str,
+      'enabled'                => $process_enabled,
       'scrub_args'             => $scrub_args,
+      'strip_proc_arguments'   => true,
       'custom_sensitive_words' => $custom_sensitive_words,
+      'process_collection'     => {
+        'enabled' => $process_enabled
+      },
+      'container_collection'   => {
+        'enabled' => $container_collect_all
+      },
     },
     'logs_enabled'   => $logs_enabled,
   }
+
   if $logs_open_files_limit {
     $logs_base_config = {
       'logs_config' => {
