@@ -37,9 +37,8 @@ class datadog_agent::ubuntu(
   if !$skip_apt_key_trusting {
     stdlib::ensure_packages(['gnupg'])
 
-    file { $apt_usr_share_keyring:
-      ensure => file,
-      mode   => '0644',
+    $apt_key_paths = $apt_default_keys.keys.map |String $key_fingerprint| {
+      "/tmp/${key_fingerprint}"
     }
 
     $apt_default_keys.each |String $key_fingerprint, String $key_url| {
@@ -50,20 +49,41 @@ class datadog_agent::ubuntu(
         group  => root,
         mode   => '0600',
         source => $key_url,
-      }
-
-      exec { "ensure key ${key_fingerprint} is imported in APT keyring":
-        command => "/bin/cat /tmp/${key_fingerprint} | gpg --import --batch --no-default-keyring --keyring ${apt_usr_share_keyring}",
-        # the second part extracts the fingerprint of the key from output like "fpr::::A2923DFF56EDA6E76E55E492D3A80E30382E94DE:"
-        unless  => @("CMD"/L)
-          /usr/bin/gpg --no-default-keyring --keyring ${apt_usr_share_keyring} --list-keys --with-fingerprint --with-colons | grep \
-          $(cat /tmp/${key_fingerprint} | gpg --with-colons --with-fingerprint 2>/dev/null | grep 'fpr:' | sed 's|^fpr||' | tr -d ':')
-          | CMD
+        notify => Exec['build Datadog APT keyring'],
       }
     }
 
+    exec { 'build Datadog APT keyring':
+      command     => "/bin/cat ${apt_key_paths.join(' ')} | /usr/bin/gpg --dearmor --yes --output ${apt_usr_share_keyring}",
+      refreshonly => true,
+      require     => [
+        Package['gnupg'],
+        File[$apt_key_paths],
+      ],
+    }
+
+    exec { 'ensure Datadog APT keyring exists':
+      command => "/bin/cat ${apt_key_paths.join(' ')} | /usr/bin/gpg --dearmor --yes --output ${apt_usr_share_keyring}",
+      unless  => "/usr/bin/test -s ${apt_usr_share_keyring} && /usr/bin/gpg --no-default-keyring --keyring ${apt_usr_share_keyring} --list-keys >/dev/null 2>&1",
+      require => [
+        Package['gnupg'],
+        File[$apt_key_paths],
+      ],
+    }
+
+    file { $apt_usr_share_keyring:
+      ensure  => file,
+      owner   => root,
+      group   => root,
+      mode    => '0644',
+      require => [
+        Exec['build Datadog APT keyring'],
+        Exec['ensure Datadog APT keyring exists'],
+      ],
+    }
+
     if ($facts['os']['name'] == 'Ubuntu' and versioncmp($facts['os']['release']['full'], '16') == -1) or
-        ($facts['os']['name'] == 'Debian' and versioncmp($facts['os']['release']['full'], '9') == -1) {
+      ($facts['os']['name'] == 'Debian' and versioncmp($facts['os']['release']['full'], '9') == -1) {
       file { $apt_trusted_d_keyring:
         mode   => '0644',
         source => "file://${apt_usr_share_keyring}",
@@ -94,6 +114,7 @@ class datadog_agent::ubuntu(
     location => $location,
     release  => $release,
     repos    => $repos,
+    require  => File[$apt_usr_share_keyring],
   }
 
   package { 'datadog-agent-base':
@@ -104,12 +125,12 @@ class datadog_agent::ubuntu(
   package { $agent_flavor:
     ensure  => $platform_agent_version,
     require => [Apt::Source['datadog'],
-                Class['apt::update']],
+      Class['apt::update']],
   }
 
   package { 'datadog-signing-keys':
     ensure  => 'latest',
     require => [Apt::Source['datadog'],
-                Class['apt::update']],
+      Class['apt::update']],
   }
 }
